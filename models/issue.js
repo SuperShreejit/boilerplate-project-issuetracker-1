@@ -1,10 +1,9 @@
 const mongoose = require('mongoose')
 
 const IssueSchema = new mongoose.Schema({
-  projectId: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true,
-    ref: 'Project'
+  project: {
+    type: String,
+    required: true
   },
   issue_title: {
     type: String,

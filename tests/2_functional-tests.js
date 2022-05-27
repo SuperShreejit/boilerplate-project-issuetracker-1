@@ -23,7 +23,35 @@ suite('Functional Tests', function() {
 			.request(server)
 			.post(route)
 			.send(request)
-			.end((err, res) => postTest(err, res, request));
+			.end((err, res) => {
+				testBasics(err, res);
+				assert.isString(res.body._id);
+				assert.match(res.body._id, idRegex);
+				assert.isString(res.body.issue_title);
+				assert.equal(res.body.issue_title, request.issue_title);
+				assert.isString(res.body.issue_text);
+				assert.equal(res.body.issue_text, request.issue_text);
+				assert.isString(res.body.created_on);
+				assert.match(res.body.created_on, dateRegex);
+				assert.isString(res.body.updated_on);
+				assert.match(res.body.updated_on, dateRegex);
+				assert.isString(res.body.created_by);
+				assert.equal(res.body.created_by, request.created_by);
+				if (!request.assigned_to) assert.isEmpty(res.body.assigned_to);
+				if (request.assigned_to) assert.isString(res.body.assigned_to);
+				assert.equal(
+					res.body.assigned_to,
+					request.assigned_to ? request.assigned_to : ''
+				);
+				if (!request.status_text) assert.isEmpty(res.body.status_text);
+				if (request.status_text) assert.isString(res.body.status_text);
+				assert.equal(
+					res.body.status_text,
+					request.status_text ? request.status_text : ''
+				);
+				assert.isBoolean(res.body.open);
+				assert.isTrue(res.body.open);
+			});
 	});
 
 	test('Create an issue with only required fields: POST request to /api/issues/{project}', () => {
@@ -36,7 +64,35 @@ suite('Functional Tests', function() {
 			.request(server)
 			.post(route)
 			.send(request)
-			.end((err, res) => postTest(err, res, request));
+			.end((err, res) => {
+				testBasics(err, res);
+				assert.isString(res.body._id);
+				assert.match(res.body._id, idRegex);
+				assert.isString(res.body.issue_title);
+				assert.equal(res.body.issue_title, request.issue_title);
+				assert.isString(res.body.issue_text);
+				assert.equal(res.body.issue_text, request.issue_text);
+				assert.isString(res.body.created_on);
+				assert.match(res.body.created_on, dateRegex);
+				assert.isString(res.body.updated_on);
+				assert.match(res.body.updated_on, dateRegex);
+				assert.isString(res.body.created_by);
+				assert.equal(res.body.created_by, request.created_by);
+				if (!request.assigned_to) assert.isEmpty(res.body.assigned_to);
+				if (request.assigned_to) assert.isString(res.body.assigned_to);
+				assert.equal(
+					res.body.assigned_to,
+					request.assigned_to ? request.assigned_to : ''
+				);
+				if (!request.status_text) assert.isEmpty(res.body.status_text);
+				if (request.status_text) assert.isString(res.body.status_text);
+				assert.equal(
+					res.body.status_text,
+					request.status_text ? request.status_text : ''
+				);
+				assert.isBoolean(res.body.open);
+				assert.isTrue(res.body.open);
+			});
 	});
 
 	test('Create an issue with missing required fields: POST request to /api/issues/{project}', () => {
@@ -47,7 +103,8 @@ suite('Functional Tests', function() {
 			.send(request)
 			.end((err, res) => {
 				testBasics(err, res);
-				testErrorResponse(res, 'required field(s) missing');
+				assert.isString(res.body.error);
+				assert.equal(res.body.error, 'required field(s) missing');
 			});
 	});
 
@@ -55,7 +112,27 @@ suite('Functional Tests', function() {
 		chai
 			.request(server)
 			.get(route)
-			.end((err, res) => getTest(err, res));
+			.end((err, res) => {
+				testBasics(err, res);
+				assert.isArray(res.body);
+				if (res.body.length > 0) {
+					res.body.forEach(issue => {
+						assert.isObject(issue);
+						assert.isString(issue._id);
+						assert.match(issue._id, idRegex);
+						assert.isString(issue.issue_title);
+						assert.isString(issue.issue_text);
+						assert.isString(issue.created_on);
+						assert.match(issue.created_on, dateRegex);
+						assert.isString(issue.updated_on);
+						assert.match(issue.updated_on, dateRegex);
+						assert.isString(issue.created_by);
+						assert.isString(issue.assigned_to);
+						assert.isString(issue.status_text);
+						assert.isBoolean(issue.open);
+					});
+				}
+			});
 	});
 
 	test('View issues on a project with one filter: GET request to /api/issues/{project}', () => {
@@ -63,14 +140,54 @@ suite('Functional Tests', function() {
 		chai
 			.request(server)
 			.get(route + query)
-			.end((err, res) => getTest(err, res));
+			.end((err, res) => {
+				testBasics(err, res);
+				assert.isArray(res.body);
+				if (res.body.length > 0) {
+					res.body.forEach(issue => {
+						assert.isObject(issue);
+						assert.isString(issue._id);
+						assert.match(issue._id, idRegex);
+						assert.isString(issue.issue_title);
+						assert.isString(issue.issue_text);
+						assert.isString(issue.created_on);
+						assert.match(issue.created_on, dateRegex);
+						assert.isString(issue.updated_on);
+						assert.match(issue.updated_on, dateRegex);
+						assert.isString(issue.created_by);
+						assert.isString(issue.assigned_to);
+						assert.isString(issue.status_text);
+						assert.isBoolean(issue.open);
+					});
+				}
+			});
 	});
 	test('View issues on a project with multiple filters: GET request to /api/issues/{project}', () => {
 		const query = '?issue_title=test_title&open=true';
 		chai
 			.request(server)
 			.get(route + query)
-			.end((err, res) => getTest(err, res));
+			.end((err, res) => {
+				testBasics(err, res);
+				assert.isArray(res.body);
+				if (res.body.length > 0) {
+					res.body.forEach(issue => {
+						assert.isObject(issue);
+						assert.isString(issue._id);
+						assert.match(issue._id, idRegex);
+						assert.isString(issue.issue_title);
+						assert.isString(issue.issue_text);
+						assert.isString(issue.created_on);
+						assert.match(issue.created_on, dateRegex);
+						assert.isString(issue.updated_on);
+						assert.match(issue.updated_on, dateRegex);
+						assert.isString(issue.created_by);
+						assert.isString(issue.assigned_to);
+						assert.isString(issue.status_text);
+						assert.isBoolean(issue.open);
+					});
+				}
+			});
 	});
 	test('Update one field on an issue: PUT request to /api/issues/{project}', () => {
 		const postRequest = {
@@ -96,7 +213,13 @@ suite('Functional Tests', function() {
 					.request(server)
 					.put(route)
 					.send(updateRequest)
-					.end((err, res) => putTest(err, res, postResponse));
+					.end((err, res) => {
+						testBasics(err, res);
+						assert.isString(res.body.result);
+						assert.equal(res.body.result, 'successfully updated');
+						assert.isString(res.body._id);
+						assert.equal(res.body._id, postResponse._id);
+					});
 			});
 	});
 
@@ -129,7 +252,13 @@ suite('Functional Tests', function() {
 					.request(server)
 					.put(route)
 					.send(updateRequest)
-					.end((err, res) => putTest(err, res, postResponse));
+					.end((err, res) => {
+            testBasics(err, res);
+						assert.isString(res.body.result);
+						assert.equal(res.body.result, 'successfully updated');
+						assert.isString(res.body._id);
+						assert.equal(res.body._id, postResponse._id);
+          });
 			});
 	});
 
@@ -139,7 +268,11 @@ suite('Functional Tests', function() {
 			.request(server)
 			.put(route)
 			.send(request)
-			.end((err, res) => putTestError(err, res, 'missing _id'));
+			.end((err, res) => {
+        testBasics(err, res);
+        assert.isString(res.body.error);
+		    assert.equal(res.body.error, 'missing _id');
+      });
 	});
 
 	test('Update an issue with no fields to update: PUT request to /api/issues/{project}', () => {
@@ -162,22 +295,30 @@ suite('Functional Tests', function() {
 					.request(server)
 					.put(route)
 					.send(updateRequest)
-					.end((err, res) =>
-						putTestError(err, res, 'no update field(s) sent', postResponse)
-					);
+					.end((err, res) => {
+              testBasics(err, res);
+              assert.isString(res.body.error);
+		          assert.equal(res.body.error, 'no update field(s) sent');
+						  assert.isString(res.body._id);
+		          assert.equal(res.body._id, postResponse._id);
+          });
 			});
 	});
 
 	test('Update an issue with an invalid _id: PUT request to /api/issues/{project}', () => {
-		const updateRequest = { _id: 'not-a-proper-id', open: false }
+		const updateRequest = { _id: 'not-a-proper-id', open: false };
 
-			chai
-				.request(server)
-				.put(route)
-				.send(updateRequest)
-				.end((err, res) =>
-					putTestError(err, res, 'could not update', updateRequest)
-				);
+		chai
+			.request(server)
+			.put(route)
+			.send(updateRequest)
+			.end((err, res) => {
+          testBasics(err, res);
+          assert.isString(res.body.error);
+          assert.equal(res.body.error, 'could not update');
+  				assert.isString(res.body._id);
+  		    assert.equal(res.body._id, updateRequest._id);
+      });
 	});
 
 	test('Delete an issue: DELETE request to /api/issues/{project}', () => {
@@ -200,7 +341,13 @@ suite('Functional Tests', function() {
 					.request(server)
 					.delete(route)
 					.send(deleteRequest)
-					.end((err, res) => deleteTest(err, res, postResponse));
+					.end((err, res) => {
+           		testBasics(err, res);
+		          assert.isString(res.body.result);
+		          assert.equal(res.body.result, 'successfully deleted');
+              assert.isString(res.body._id);
+		          assert.equal(res.body._id, postResponse._id);
+          });
 			});
 	});
 
@@ -211,9 +358,13 @@ suite('Functional Tests', function() {
 			.request(server)
 			.delete(route)
 			.send(deleteRequest)
-			.end((err, res) =>
-				deleteTestError(err, res, 'could not delete', deleteRequest)
-			);
+			.end((err, res) => {
+          testBasics(err, res);
+					assert.isString(res.body.error);
+		      assert.equal(res.body.error, 'could not delete');
+          assert.isString(res.body._id);
+		      assert.equal(res.body._id, deleteRequest._id);
+      });
 	});
 
 	test('Delete an issue with missing _id: DELETE request to /api/issues/{project}', () => {
@@ -222,7 +373,11 @@ suite('Functional Tests', function() {
 			.request(server)
 			.delete(route)
 			.send(deleteRequest)
-			.end((err, res) => deleteTestError(err, res, 'missing _id'));
+			.end((err, res) => {
+          testBasics(err, res);
+					assert.isString(res.body.error);
+          assert.equal(res.body.error, 'missing _id');
+      });
 	});
 
 	const testBasics = (err, res) => {

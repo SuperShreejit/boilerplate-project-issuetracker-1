@@ -1,5 +1,4 @@
 'use strict';
-const Project = require('../models/project')
 const Issue = require('../models/issue')
 
 module.exports = function(app) {
@@ -7,14 +6,10 @@ module.exports = function(app) {
   app.route('/api/issues/:project')
 
     .get(async (req, res) => {
-      const projectName = req.params.project;
+      const project = req.params.project;
       try {
-        let issues = []
-        const project = await Project.findOne({ name: projectName }).exec()
-        if (!project) return res.json(issues)
 
         let query = {}
-
         if (req.query._id)
           query._id = req.query._id
         if (req.query.issue_title)
@@ -34,7 +29,10 @@ module.exports = function(app) {
         if (req.query.updated_on)
           query.updatedAt = new Date(req.query.updated_on)
 
-        issues = await Issue.find({ projectId: project._id }).where(query).exec()
+        const issues = await Issue.find({ project }).where(query).exec()
+        
+        if(!issues || issues === null) return res.json([])
+        
         res.json(issues.map(issue => ({
           assigned_to: issue.assigned_to,
           status_text: issue.status_text,
@@ -53,7 +51,7 @@ module.exports = function(app) {
     })
 
     .post(async (req, res) => {
-      const projectName = req.params.project
+      const project = req.params.project
       const { issue_title, issue_text, created_by, assigned_to, status_text } = req.body
 
       try {
@@ -62,24 +60,16 @@ module.exports = function(app) {
             || (!created_by || created_by === ""))
           throw new Error('required field(s) missing')
 
-        let project = await Project.findOne({ name: projectName }).exec()
-        if (!project) {
-          project = new Project({
-            name: projectName
-          })
-          await project.save()
-        }
-
         const issue = new Issue({
-          projectId: project.id,
+          project,
           issue_title,
           issue_text,
           created_by,
           assigned_to: assigned_to ? assigned_to : "",
           status_text: status_text ? status_text : ""
         })
-
         const newIssue = await issue.save()
+        
         res.json({
           _id: newIssue.id,
           issue_title: newIssue.issue_title,
@@ -98,7 +88,6 @@ module.exports = function(app) {
     })
 
     .put(async (req, res) => {
-      const projectName = req.params.project;
       const { _id, issue_title, issue_text, created_by, assigned_to, status_text, open } = req.body
       try {
         if (_id === "" || !_id) throw new Error("missing _id")
@@ -111,12 +100,9 @@ module.exports = function(app) {
           && open === undefined)
           throw new Error('no update field(s) sent')
 
-        const project = await Project.findOne({ name: projectName }).exec()
-        if (!project) throw new Error('could not update')
-
         if(!(/^\w{24}$/).test(_id)) throw new Error('could not update')
         const issue = await Issue.findById(_id)
-        if (!issue) throw new Error('could not update')
+        if (!issue || issue === null) throw new Error('could not update')
 
         const updateQuery = {}
         if (issue_title && issue_title !== '')
@@ -135,7 +121,7 @@ module.exports = function(app) {
         const updatedIssue = await Issue.findByIdAndUpdate(_id, updateQuery, {
           new: true, runValidators: true
         })
-        if (updatedIssue) res.json({ result: 'successfully updated', _id })
+        if (updatedIssue !== null) res.json({ result: 'successfully updated', _id })
 
       } catch (error) {
         const response = { error: error.message }
@@ -145,17 +131,13 @@ module.exports = function(app) {
     })
 
     .delete(async (req, res) => {
-      const projectName = req.params.project;
       const { _id } = req.body
       try {
         if (_id === "" || !_id) throw new Error("missing _id")
 
-        const project = await Project.findOne({ name: projectName }).exec()
-        if (!project) throw new Error('could not delete')
-
         if(!(/^\w{24}$/).test(_id)) throw new Error('could not delete')
         const issue = await Issue.findById(_id)
-        if (!issue) throw new Error('could not delete')
+        if (!issue || issue === null) throw new Error('could not delete')
 
         await Issue.findByIdAndDelete(_id)
         res.json({ result: 'successfully deleted', _id })
