@@ -8,7 +8,6 @@ module.exports = function(app) {
 
     .get(async (req, res) => {
       const projectName = req.params.project;
-
       try {
         let issues = []
         const project = await Project.findOne({ name: projectName }).exec()
@@ -58,7 +57,6 @@ module.exports = function(app) {
       const { issue_title, issue_text, created_by, assigned_to, status_text } = req.body
 
       try {
-
         if ((!issue_title || issue_title === "")
             || (!issue_text || issue_text === "")
             || (!created_by || created_by === ""))
@@ -98,21 +96,13 @@ module.exports = function(app) {
         res.json({ error: error.message })
       }
     })
-    //FCC_issueId: 628fa37d0a8b6f22d23c4fed
-    //mine_ issueId: 628fbab841c4cc6854c10866
+
     .put(async (req, res) => {
       const projectName = req.params.project;
       const { _id, issue_title, issue_text, created_by, assigned_to, status_text, open } = req.body
       try {
         if (_id === "" || !_id) throw new Error("missing _id")
-
-        const project = await Project.findOne({ name: projectName }).exec()
-        if (!project) throw new Error('could not update')
-
-        if(!(/^\w{24}$/).test(_id)) throw new Error('could not update')
-        const issue = await Issue.findById(_id)
-        if (!issue) throw new Error('could not update')
-
+        
         if ((issue_title === '' || !issue_title)
           && (issue_text === '' || !issue_text)
           && (created_by === '' || !created_by)
@@ -120,6 +110,13 @@ module.exports = function(app) {
           && (status_text === '' || !status_text)
           && open === undefined)
           throw new Error('no update field(s) sent')
+
+        const project = await Project.findOne({ name: projectName }).exec()
+        if (!project) throw new Error('could not update')
+
+        if(!(/^\w{24}$/).test(_id)) throw new Error('could not update')
+        const issue = await Issue.findById(_id)
+        if (!issue) throw new Error('could not update')
 
         const updateQuery = {}
         if (issue_title && issue_title !== '')

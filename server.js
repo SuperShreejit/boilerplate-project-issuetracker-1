@@ -48,7 +48,7 @@ app.use(function(req, res, next) {
 });
 
 //Start our server and tests!
-const listener = app.listen(process.env.PORT || 3000, async function() {
+const listener = app.listen(process.env.PORT || 3500, async function() {
   console.log('Your app is listening on port ' + listener.address().port);
   const db = await mongoose.connect(process.env.MONGO_URI) 
   if(db) console.log('MongoDb connected!')
